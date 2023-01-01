@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from services.athena import AthenaS3StreamingExporter
+from tasks.athena import AthenaS3StreamingExporter
 
 athena_s3 = AthenaS3StreamingExporter(
     access_key="AKIAXS2SFBSOTZFERP5O",
