@@ -51,11 +51,8 @@ def get_start_end_block(start_block, end_block, block_batch_size, last_synced_bl
     blocks_to_sync = 0
     target_block = end_block
     while (end_block is None or last_synced_block < end_block) and blocks_to_sync==0:
-        print(1)
         current_block = get_current_block_number(provider_uri)
-        print(current_block)
         target_block = calculate_target_block(current_block, block_batch_size, end_block, last_synced_block)
-        print(target_block)
         blocks_to_sync = max(target_block - last_synced_block, 0)
 
         logging.info('Current block {}, target block {}, last synced block {}, blocks to sync {}'.format(
