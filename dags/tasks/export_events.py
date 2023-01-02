@@ -10,13 +10,12 @@ def export_events(output, logs, chain):
     """Exports blocks and transactions."""
     if output is None:
         raise ValueError('Either --blocks-output or --transactions-output options must be provided')
-    item = create_steaming_exporter(output=output)
     start_time = time.time()
     _LOGGER.info(f"Start crawl data")
     job = ExportEventJob(
         chain=chain,
         logs=logs,
-        item_exporter=item,
+        item_exporter=output,
     )
     job.run()
     _LOGGER.info(f"crawl data in {time.time() - start_time}")

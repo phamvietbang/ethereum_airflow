@@ -28,9 +28,9 @@ class AthenaS3StreamingExporter(object):
             QueryString=f'create database if not exists {self.database}',
             ResultConfiguration=self.config)
 
-    def create_event_table(self):
+    def create_transfer_event_table(self):
         query = f'''
-        CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`events` (
+        CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`transfer_events` (
             `event_type` string,
                 `transaction_hash` string,
               `block_number` bigint,
@@ -48,7 +48,7 @@ class AthenaS3StreamingExporter(object):
               'mapping' = 'TRUE'
             )
             STORED AS INPUTFORMAT 'org.apache.hadoop.mapred.TextInputFormat' OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
-            LOCATION 's3://{self.bucket}/{self.database}/events/'
+            LOCATION 's3://{self.bucket}/{self.database}/transfer_event/'
             TBLPROPERTIES ('classification' = 'json');
             '''
         response = self.athena_client.start_query_execution(QueryString=query,
@@ -57,7 +57,7 @@ class AthenaS3StreamingExporter(object):
 
     def create_erc20_token_table(self):
         query = f'''
-            CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`tokens` (
+            CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`tokens` (
               `address` string,
               `supply` string,
               `decimals` int
@@ -79,7 +79,7 @@ class AthenaS3StreamingExporter(object):
 
     def create_lp_token_table(self):
         query = f'''
-        CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`lp_tokens` (
+        CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`lp_tokens` (
           `lp_token` string,
           `token_a` string,
           `token_b` string
@@ -101,7 +101,7 @@ class AthenaS3StreamingExporter(object):
 
     def create_lp_token_holder_table(self):
         query = f'''
-        CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`holders` (
+        CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`holders` (
           `lp_token` string,
           `address` string
         )
@@ -122,7 +122,7 @@ class AthenaS3StreamingExporter(object):
 
     def create_transaction_table(self):
         query = f'''
-        CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`transactions` (
+        CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`transactions` (
           `hash` string,
           `nonce` bigint,
           `block_hash` string,
@@ -153,7 +153,7 @@ class AthenaS3StreamingExporter(object):
 
     def create_log_table(self):
         query = f'''
-            CREATE EXTERNAL TABLE IF NOT EXISTS `onus`.`logs` (
+            CREATE EXTERNAL TABLE IF NOT EXISTS `{self.database}`.`logs` (
               `address` string,
               `log_index` bigint,
               `data` string,
@@ -181,7 +181,7 @@ class AthenaS3StreamingExporter(object):
 
     def export_holders(self):
         query = f'''
-                create table holders
+                create table {self.database}.holders
                 with(
                     format = 'TEXTFILE',
                     field_delimiter = ',', 
@@ -193,11 +193,11 @@ class AthenaS3StreamingExporter(object):
                     from (
                     -- debits
                     select to_address as address, token_address as token, value as value
-                    from onus.events
+                    from {self.database}.transfer_events
                     union all
                     -- credits
                     select from_address as address, token_address as token, -value as value
-                    from onus.events
+                    from {self.database}.transfer_events
                     )
                     group by address, token
                     order by balance desc

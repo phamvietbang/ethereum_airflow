@@ -16,12 +16,12 @@ item_exporter = S3StreamingExporter(
 )
 
 params = {
-    'start_block': 1580068,
+    'start_block': None,
     'end_block': None,
     'provider_uri': "https://rpc.onuschain.io/",
     'output': item_exporter,
     'chain': 'onus',
-    'block_batch_size': 1200,
+    'block_batch_size': 400,
     'last_synced_block_file': "onus_last_synced_block_file.txt"
 }
 
@@ -50,9 +50,12 @@ def get_start_end_block(start_block, end_block, block_batch_size, last_synced_bl
     last_synced_block = read_last_synced_block(last_synced_block_file)
     blocks_to_sync = 0
     target_block = end_block
-    while (end_block is None or last_synced_block < end_block) and blocks_to_sync:
+    while (end_block is None or last_synced_block < end_block) and blocks_to_sync==0:
+        print(1)
         current_block = get_current_block_number(provider_uri)
+        print(current_block)
         target_block = calculate_target_block(current_block, block_batch_size, end_block, last_synced_block)
+        print(target_block)
         blocks_to_sync = max(target_block - last_synced_block, 0)
 
         logging.info('Current block {}, target block {}, last synced block {}, blocks to sync {}'.format(
@@ -107,8 +110,8 @@ with DAG(
         default_args=default_args,
         dag_id='Athena_03',
         start_date=datetime(2023, 1, 1),
-        # schedule_interval='*/1 * * * *',
-        # max_active_runs=1
+        schedule_interval='*/2 * * * *',
+        max_active_runs=1
 ) as dag:
     task1 = PythonOperator(
         task_id='Get_start_end_block',
@@ -121,6 +124,7 @@ with DAG(
             'provider_uri': params.get('provider_uri'),
         }
     )
+    
     task2 = PythonOperator(
         task_id='Get_transactions',
         python_callable=get_transactions,

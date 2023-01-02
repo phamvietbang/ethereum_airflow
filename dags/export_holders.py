@@ -13,17 +13,17 @@ athena_s3 = AthenaS3StreamingExporter(
 
 
 def create_database():
-    query_execution_id = athena_s3.create_database()
+    athena_s3.create_database()
     # while not athena_s3.has_query_succeeded(query_execution_id):
     #     pass
 
-    query_execution_id = athena_s3.create_event_table()
+    athena_s3.create_transfer_event_table()
     # while not athena_s3.has_query_succeeded(query_execution_id):
     #     pass
 
 
 def export_holders():
-    query_execution_id = athena_s3.export_holders()
+    athena_s3.export_holders()
     # while not athena_s3.has_query_succeeded(query_execution_id):
     #     pass
 

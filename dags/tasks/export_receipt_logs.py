@@ -14,7 +14,6 @@ def export_receipt_logs(
     """Exports blocks and transactions."""
     if output is None:
         raise ValueError('Either --blocks-output or --transactions-output options must be provided')
-    item = create_steaming_exporter(output=output)
     start_time = time.time()
     _LOGGER.info(f"Start crawl data")
     job = ExportReceiptsJob(
@@ -22,7 +21,7 @@ def export_receipt_logs(
         batch_size=batch_size,
         batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
         max_workers=max_workers,
-        item_exporter=item,
+        item_exporter=output,
         transaction_hashes_iterable=transaction_hashes,
         export_receipts=export_receipts,
         export_logs=export_logs
